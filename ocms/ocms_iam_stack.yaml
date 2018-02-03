@@ -1,5 +1,23 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Stack creates roles and permissions needed for Blue Chip Tek's Optimized Cloud.
+
+Description: Stack creates roles and permissions needed for BlueChipTek's Optimized Cloud.
+
+Parameters:
+  OptimizedCloudManagerExternalId:
+    Type: String
+
+  CloudHealthExternalId:
+    Type: String
+
+  DeploymentType:
+    Type: String
+    Default: Eval
+    AllowedValues: ["Eval", "Full"]
+    Description: If roles only are provided Readonly access for Eval or Read/Write for Full deployment.
+
+Conditions:
+  FullDeploy: !Equals [ !Ref DeploymentType, Full]
+
 Resources:
   OptimizedCloudManagerRole:
     Type: AWS::IAM::Role
@@ -12,6 +30,9 @@ Resources:
               AWS: 555703595940
             Action:
               - sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref OptimizedCloudManagerExternalId
       RoleName: BctOptimizedCloudManager
 
   CloudHealthRole:
@@ -25,6 +46,9 @@ Resources:
               AWS: 454464851268
             Action:
               - sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref CloudHealthExternalId
       RoleName: BctCloudHealth
 
   ReadOnlyPolicy:
@@ -108,6 +132,7 @@ Resources:
 
   AcceptAccountLinkRequestPolicy:
     Type: AWS::IAM::Policy
+    Condition: FullDeploy
     Properties:
       PolicyName: BctAcceptAccountLinkRequest
       PolicyDocument:
