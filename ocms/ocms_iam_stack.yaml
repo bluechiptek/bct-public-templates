@@ -3,25 +3,37 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Stack creates roles and permissions needed for BlueChipTek's Optimized Cloud.
 
 Parameters:
-  OptimizedCloudManagerExternalId:
+  AwsResale:
+    Description: Setting to True allows for the OCMS to link AWS to BCT
+    Type: String
+    Default: false
+
+  OcmsExternalId:
+    Description: External Id used to access OCMS related role
     Type: String
 
   CloudHealthExternalId:
+    Description: External Id used for CloudHealth to access role
     Type: String
+    Default: none
 
   DeploymentType:
-    Type: String
-    Default: Eval
-    AllowedValues: ["Eval", "Full"]
     Description: If roles only are provided Readonly access for Eval or Read/Write for Full deployment.
+    Type: String
+    Default: eval
+    AllowedValues: ["eval", "full"]
+
 
 Conditions:
-  FullDeploy: !Equals [ !Ref DeploymentType, Full]
+  FullDeploy: !Equals [ !Ref DeploymentType, full]
+  ReslaeDeploy: !Equals [ !Ref AwsResale, true]
+  ChDeploy: !Not [!Equals [ !Ref CloudHealthExternalId, none]]
 
 Resources:
   OptimizedCloudManagerRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: BctOptimizedCloudManager
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -32,12 +44,13 @@ Resources:
               - sts:AssumeRole
             Condition:
               StringEquals:
-                sts:ExternalId: !Ref OptimizedCloudManagerExternalId
-      RoleName: BctOptimizedCloudManager
+                sts:ExternalId: !Ref OcmsExternalId
 
   CloudHealthRole:
     Type: AWS::IAM::Role
+    Condition: ChDeploy
     Properties:
+      RoleName: BctCloudHealth
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -49,7 +62,9 @@ Resources:
             Condition:
               StringEquals:
                 sts:ExternalId: !Ref CloudHealthExternalId
-      RoleName: BctCloudHealth
+      ManagedPolicyArns:
+        - !Ref ReadOnlyPolicy
+
 
   ReadOnlyPolicy:
     Type: AWS::IAM::Policy
@@ -128,11 +143,10 @@ Resources:
           Resource: "*"
       Roles:
         - !Ref OptimizedCloudManagerRole
-        - !Ref CloudHealthRole
 
   AcceptAccountLinkRequestPolicy:
     Type: AWS::IAM::Policy
-    Condition: FullDeploy
+    Condition: ReslaeDeploy
     Properties:
       PolicyName: BctAcceptAccountLinkRequest
       PolicyDocument:
@@ -154,6 +168,7 @@ Outputs:
       Name: BctOptimizedCloudManagerRoleArn
 
   CloudHealthRoleArn:
+    Condition: ChDeploy
     Value: !GetAtt CloudHealthRole.Arn
     Export:
       Name: BctCloudHealthRoleArn
