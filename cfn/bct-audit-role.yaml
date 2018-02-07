@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Stack creates roles and read-only permissions needed for BlueChipTek account discovery and audit.
+
+Parameters:
+  UserAccount:
+    Description: The AWS account that contains the IAM user that will be used for the discovery and audit.
+    Type: String
+
+  RoleName:
+    Description: Name of IAM role that will be used for BlueChipTek account discovery and audit.
+    Type: String
+    Default: bct-audit-role
+
+Resources:
+  AuditRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Ref UserAccount
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+
+  BillingReadOnlyPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: BctBillingReadOnly
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - aws-portal:ViewPaymentMethods
+              - aws-portal:ViewAccount
+              - aws-portal:ViewBilling
+              - aws-portal:ViewUsage
+            Resource: "*"
+      Roles:
+        - !Ref AuditRole
