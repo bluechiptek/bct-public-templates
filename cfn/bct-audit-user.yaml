@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Stack creates IAM user with permissions to assume role used for BlueChipTek account discovery and audit.
+
+Parameters:
+  UserName:
+    Description: The name of the IAM user.
+    Type: String
+    Default: bct-audit-user
+
+  RoleName:
+    Description: Name of IAM role that will be used for BlueChipTek account discovery and audit.
+    Type: String
+    Default: bct-audit-role
+
+Resources:
+  AuditUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref UserName
+      Policies:
+        - PolicyName: AssumeAuditRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              Effect: Allow
+              Action: sts:AssumeRole
+              Resource: !Sub 'arn:aws:iam::*:role/${RoleName}'
