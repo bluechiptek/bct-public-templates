@@ -1,19 +1,19 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Stack creates roles and read-only permissions needed for BlueChipTek account discovery and audit.
+Description: Stack creates roles and read-only permissions needed for BlueChipTek to review AWS accounts.
 
 Parameters:
   UserAccount:
-    Description: The AWS account that contains the IAM user that will be used for the discovery and audit.
+    Description: The AWS account that contains the IAM user that will be used for the review.
     Type: String
 
   RoleName:
-    Description: Name of IAM role that will be used for BlueChipTek account discovery and audit.
+    Description: Name of IAM role that will be used for BlueChipTek to review AWS accounts.
     Type: String
-    Default: bct-audit-role
+    Default: bct-review-role
 
 Resources:
-  AuditRole:
+  ReviewRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Ref RoleName
@@ -44,4 +44,4 @@ Resources:
               - aws-portal:ViewUsage
             Resource: "*"
       Roles:
-        - !Ref AuditRole
+        - !Ref ReviewRole
