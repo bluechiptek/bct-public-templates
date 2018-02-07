@@ -45,3 +45,18 @@ Resources:
             Resource: "*"
       Roles:
         - !Ref ReviewRole
+
+  OrginizationsReadOnlyPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: BctOrginizationsReadOnly
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - organizations:List*
+              - organizations:Describe*
+            Resource: "*"
+      Roles:
+        - !Ref ReviewRole
