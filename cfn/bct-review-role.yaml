@@ -42,6 +42,7 @@ Resources:
               - aws-portal:ViewAccount
               - aws-portal:ViewBilling
               - aws-portal:ViewUsage
+              - ce:*
             Resource: "*"
       Roles:
         - !Ref ReviewRole
